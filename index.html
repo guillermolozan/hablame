@@ -6,10 +6,10 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#000000">
-  <title>LEELO</title>
+  <title>LEELO : Tu voz, en letra gigante en pantalla</title>
   <meta name="description" content="LEELO: habla y tu mensaje aparece en letra gigante para mostrarlo a los demás. Reconocimiento de voz en el celular, sin instalar nada.">
   <link rel="canonical" href="https://leelo.info/">
-  <meta property="og:title" content="LEELO">
+  <meta property="og:title" content="LEELO : Tu voz, en letra gigante en pantalla">
   <meta property="og:description" content="Habla y tu mensaje aparece en letra gigante para mostrarlo a los demás.">
   <meta property="og:url" content="https://leelo.info/">
   <meta property="og:type" content="website">
@@ -17,7 +17,7 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="LEELO">
+  <meta name="twitter:title" content="LEELO : Tu voz, en letra gigante en pantalla">
   <meta name="twitter:description" content="Habla y tu mensaje aparece en letra gigante para mostrarlo a los demás.">
   <meta name="twitter:image" content="https://leelo.info/icons/og-image.png">
   <link rel="manifest" href="manifest.webmanifest">
@@ -653,7 +653,7 @@
       };
 
       const FIRST_WORD_GRACE = 6; // seconds allowed before the first word is heard
-      const APP_VERSION = "1.6.0";
+      const APP_VERSION = "1.6.1";
 
       // localStorage may be unavailable (private mode, sandboxed iframe) — fall back to memory.
       const store = (function () {
@@ -1297,7 +1297,6 @@
       renderStarred();
       render("", false);
       el.versionLabel.textContent = "Versi\u00f3n " + APP_VERSION;
-      document.title = "LEELO v" + APP_VERSION;
 
       if ("serviceWorker" in navigator && location.protocol === "https:") {
         navigator.serviceWorker.register("./sw.js").catch(function () {});
