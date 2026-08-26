@@ -1,8 +1,8 @@
-# Háblame
+# LEELO
 
 App web de un solo archivo (`index.html`) que convierte tu voz en texto grande en pantalla. Pensada para mostrar mensajes en el celular: presiona, habla, y lo dicho aparece con tipografía gigante y auto-ajustada.
 
-**En línea**: https://guillermolozan.github.io/hablame/
+**En línea**: https://leelo.info (también en https://guillermolozan.github.io/hablame/)
 
 ## Uso
 

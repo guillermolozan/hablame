@@ -6,7 +6,13 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#000000">
-  <title>Háblame</title>
+  <title>LEELO</title>
+  <meta name="description" content="LEELO: habla y tu mensaje aparece en letra gigante para mostrarlo a los demás. Reconocimiento de voz en el celular, sin instalar nada.">
+  <link rel="canonical" href="https://leelo.info/">
+  <meta property="og:title" content="LEELO">
+  <meta property="og:description" content="Habla y tu mensaje aparece en letra gigante para mostrarlo a los demás.">
+  <meta property="og:url" content="https://leelo.info/">
+  <meta property="og:type" content="website">
   <style>
     :root {
       --bg: #000000;
@@ -478,7 +484,7 @@
   <div id="toast" role="status"></div>
 
   <div class="bar">
-    <div class="status"><span class="dot"></span><span id="statusText">Listo</span></div>
+    <div class="status"><span class="dot"></span><span id="statusText">LEELO.INFO</span></div>
     <button class="icon-btn" id="settingsBtn" aria-label="Ajustes">&#9881;</button>
   </div>
 
@@ -617,7 +623,7 @@
       };
 
       const FIRST_WORD_GRACE = 6; // seconds allowed before the first word is heard
-      const APP_VERSION = "1.4.0";
+      const APP_VERSION = "1.5.0";
 
       // localStorage may be unavailable (private mode, sandboxed iframe) — fall back to memory.
       const store = (function () {
@@ -1096,7 +1102,7 @@
         } else {
           stopSilenceWatch();
           releaseWakeLock();
-          el.statusText.textContent = finalText ? "Mensaje listo" : "Listo";
+          el.statusText.textContent = finalText ? "Mensaje listo" : "LEELO.INFO";
           if (finalText.trim()) pushHistory(finalText.trim());
         }
       }
@@ -1261,7 +1267,7 @@
       renderStarred();
       render("", false);
       el.versionLabel.textContent = "Versi\u00f3n " + APP_VERSION;
-      document.title = "H\u00e1blame v" + APP_VERSION;
+      document.title = "LEELO v" + APP_VERSION;
     })();
   </script>
 </body>
