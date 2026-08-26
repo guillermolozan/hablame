@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#000000">
+  <title>Háblame</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --fg: #FFE066;
+      --ui: rgba(255, 255, 255, 0.14);
+      --ui-fg: rgba(255, 255, 255, 0.85);
+      --accent: #FFE066;
+      --safe-b: env(safe-area-inset-bottom, 0px);
+      --safe-t: env(safe-area-inset-top, 0px);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    /* ---------- top bar ---------- */
+
+    .bar {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: calc(var(--safe-t) + 8px) 12px 8px;
+    }
+
+    .status {
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ui-fg);
+      opacity: 0.55;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 20px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0;
+    }
+
+    body.listening .dot { opacity: 1; animation: pulse 1.1s ease-in-out infinite; }
+    body.listening .status { opacity: 1; }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.7); opacity: 0.35; }
+    }
+
+    .icon-btn {
+      flex: 0 0 auto;
+      width: 44px;
+      height: 44px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--ui);
+      color: var(--ui-fg);
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+
+    .icon-btn:active { transform: scale(0.94); }
+    .icon-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+    /* ---------- display ---------- */
+
+    #stage {
+      flex: 1 1 auto;
+      position: relative;
+      padding: 4px 16px;
+      min-height: 0;
+    }
+
+    #display {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-weight: 750;
+      line-height: 1.06;
+      letter-spacing: -0.02em;
+      white-space: pre-wrap;
+      word-break: break-word;
+      hyphens: auto;
+      overflow: hidden;
+      font-size: 40px;
+    }
+
+    #display.placeholder {
+      font-weight: 500;
+      opacity: 0.35;
+      letter-spacing: 0;
+    }
+
+    #display.interim { opacity: 0.5; }
+
+    /* ---------- action button ---------- */
+
+    .actions {
+      flex: 0 0 auto;
+      padding: 10px 16px calc(var(--safe-b) + 16px);
+      display: flex;
+      gap: 10px;
+    }
+
+    .action {
+      flex: 1 1 auto;
+      min-height: 74px;
+      border: 0;
+      border-radius: 18px;
+      background: var(--accent);
+      color: var(--bg);
+      font-size: 21px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .action:active { transform: scale(0.98); }
+    .action:focus-visible { outline: 3px solid var(--fg); outline-offset: 3px; }
+    .action[disabled] { opacity: 0.4; }
+    .action[hidden] { display: none; }
+
+    .action.alt {
+      background: #E5484D;
+      color: #ffffff;
+    }
+
+    body.listening .action { background: #E5484D; color: #ffffff; }
+
+    .action .glyph { font-size: 26px; }
+
+    /* ---------- settings sheet ---------- */
+
+    .scrim {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(2px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 10;
+    }
+
+    .sheet {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 11;
+      max-height: 86vh;
+      overflow-y: auto;
+      background: #16161a;
+      color: #f2f2f5;
+      border-radius: 20px 20px 0 0;
+      padding: 8px 18px calc(var(--safe-b) + 24px);
+      transform: translateY(101%);
+      transition: transform 0.24s cubic-bezier(0.32, 0.72, 0, 1);
+      font-size: 15px;
+    }
+
+    body.settings-open .scrim { opacity: 1; pointer-events: auto; }
+    body.settings-open .sheet { transform: translateY(0); }
+
+    .grabber {
+      width: 40px;
+      height: 4px;
+      border-radius: 2px;
+      background: #4a4a52;
+      margin: 6px auto 16px;
+    }
+
+    .group { margin-bottom: 22px; }
+
+    .group > label,
+    .group > .label {
+      display: block;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #8b8b96;
+      margin-bottom: 10px;
+    }
+
+    .themes {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+      gap: 8px;
+    }
+
+    .theme {
+      border: 2px solid transparent;
+      border-radius: 12px;
+      height: 58px;
+      font-size: 20px;
+      font-weight: 800;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      font-family: inherit;
+    }
+
+    .theme[aria-pressed="true"] { border-color: #7f7fff; }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 11px 0;
+    }
+
+    .row + .row { border-top: 1px solid #26262c; }
+
+    select, input[type="range"], input[type="color"] {
+      font-family: inherit;
+      font-size: 15px;
+    }
+
+    select {
+      background: #26262c;
+      color: #f2f2f5;
+      border: 0;
+      border-radius: 9px;
+      padding: 9px 11px;
+      min-width: 140px;
+    }
+
+    input[type="color"] {
+      width: 52px;
+      height: 36px;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    input[type="range"] { width: 150px; accent-color: #7f7fff; }
+
+    .ctl {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 0 0 auto;
+    }
+
+    .ctl input[type="range"] { width: 106px; }
+
+    .ctl b {
+      font-size: 13px;
+      font-weight: 600;
+      color: #8b8b96;
+      min-width: 48px;
+      text-align: right;
+    }
+
+    .switch {
+      position: relative;
+      width: 50px;
+      height: 30px;
+      flex: 0 0 auto;
+    }
+
+    .switch input { opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+
+    .track {
+      position: absolute;
+      inset: 0;
+      border-radius: 15px;
+      background: #3a3a42;
+      pointer-events: none;
+      transition: background 0.15s ease;
+    }
+
+    .track::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform 0.15s ease;
+    }
+
+    .switch input:checked ~ .track { background: #7f7fff; }
+    .switch input:checked ~ .track::after { transform: translateX(20px); }
+
+    .hint {
+      font-size: 13px;
+      color: #8b8b96;
+      line-height: 1.45;
+      margin-top: 8px;
+    }
+
+    #history {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    #history button {
+      text-align: left;
+      background: #26262c;
+      color: #d8d8de;
+      border: 0;
+      border-radius: 10px;
+      padding: 11px 13px;
+      font-family: inherit;
+      font-size: 14px;
+      cursor: pointer;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #keyboardInput {
+      width: 100%;
+      background: #26262c;
+      color: #f2f2f5;
+      border: 0;
+      border-radius: 12px;
+      padding: 13px;
+      font-family: inherit;
+      font-size: 16px;
+      resize: vertical;
+      min-height: 84px;
+    }
+
+    .ghost {
+      width: 100%;
+      margin-top: 10px;
+      background: #7f7fff;
+      color: #fff;
+      border: 0;
+      border-radius: 12px;
+      padding: 14px;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .unsupported {
+      display: none;
+      padding: 12px 16px;
+      background: #E5484D;
+      color: #fff;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    body.unsupported .unsupported { display: block; }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="unsupported">
+    Este navegador no reconoce voz. Abre el archivo en <strong>Chrome</strong> (Android) o <strong>Safari</strong> (iOS 17+).
+  </div>
+
+  <div class="bar">
+    <div class="status"><span class="dot"></span><span id="statusText">Listo</span></div>
+    <button class="icon-btn" id="settingsBtn" aria-label="Ajustes">&#9881;</button>
+  </div>
+
+  <div id="stage">
+    <div id="display" class="placeholder" aria-live="polite">Presiona Hablar o Preguntar y di tu mensaje</div>
+  </div>
+
+  <div class="actions">
+    <button class="action" id="mainBtn"><span id="mainBtnText">Hablar</span></button>
+    <button class="action alt" id="askBtn"><span class="glyph">&iquest;</span><span>Preguntar</span></button>
+  </div>
+
+  <div class="scrim" id="scrim"></div>
+
+  <div class="sheet" id="sheet" role="dialog" aria-label="Ajustes">
+    <div class="grabber"></div>
+
+    <div class="group">
+      <span class="label">Colores</span>
+      <div class="themes" id="themes"></div>
+      <div class="row">
+        <span>Personalizado</span>
+        <span>
+          <input type="color" id="customBg" value="#000000" aria-label="Color de fondo">
+          <input type="color" id="customFg" value="#FFE066" aria-label="Color del texto">
+        </span>
+      </div>
+    </div>
+
+    <div class="group">
+      <span class="label">Texto</span>
+      <div class="row">
+        <span>Ajustar a la pantalla</span>
+        <label class="switch"><input type="checkbox" id="autoFit" checked><span class="track"></span></label>
+      </div>
+      <div class="row">
+        <span>Tamaño manual</span>
+        <input type="range" id="fontSize" min="24" max="220" step="2" value="80" disabled>
+      </div>
+      <div class="row">
+        <span>Tipografía</span>
+        <select id="fontFamily">
+          <option value="system-ui, -apple-system, Roboto, sans-serif">Sans (estándar)</option>
+          <option value="Georgia, 'Times New Roman', serif">Serif</option>
+          <option value="ui-monospace, 'Courier New', monospace">Monoespaciada</option>
+        </select>
+      </div>
+      <div class="row">
+        <span>Todo en MAYÚSCULAS</span>
+        <label class="switch"><input type="checkbox" id="upper"><span class="track"></span></label>
+      </div>
+    </div>
+
+    <div class="group">
+      <span class="label">Voz</span>
+      <div class="row">
+        <span>Idioma</span>
+        <select id="lang">
+          <option value="es-PE">Español (Perú)</option>
+          <option value="es-ES">Español (España)</option>
+          <option value="es-MX">Español (México)</option>
+          <option value="en-US">English (US)</option>
+          <option value="pt-BR">Português (BR)</option>
+        </select>
+      </div>
+      <div class="row">
+        <span>Ver mientras hablo</span>
+        <label class="switch"><input type="checkbox" id="interim" checked><span class="track"></span></label>
+      </div>
+      <div class="row">
+        <span>Detener tras silencio</span>
+        <span class="ctl">
+          <input type="range" id="silenceStop" min="0" max="15" step="1" value="4" aria-label="Segundos de silencio para detener">
+          <b id="silenceStopVal">4 s</b>
+        </span>
+      </div>
+      <div class="row">
+        <span>Punto y salto de línea</span>
+        <span class="ctl">
+          <input type="range" id="silencePunct" min="0" max="6" step="0.5" value="2" aria-label="Segundos de silencio para puntuar">
+          <b id="silencePunctVal">2 s</b>
+        </span>
+      </div>
+      <div class="row">
+        <span>Mantener pantalla encendida</span>
+        <label class="switch"><input type="checkbox" id="wakeLock" checked><span class="track"></span></label>
+      </div>
+      <p class="hint">Mueve los sliders al mínimo para desactivarlos. Antes de tu primera palabra se espera al menos 6 s, para que no se corte mientras acomodas el celular.</p>
+    </div>
+
+    <div class="group">
+      <span class="label">Responder escribiendo</span>
+      <textarea id="keyboardInput" placeholder="Escribe aquí y se mostrará en grande"></textarea>
+      <button class="ghost" id="showTyped">Mostrar en pantalla</button>
+    </div>
+
+    <div class="group">
+      <span class="label">Mensajes recientes</span>
+      <div id="history"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const THEMES = [
+        { name: "Amarillo", bg: "#000000", fg: "#FFE066" },
+        { name: "Blanco", bg: "#000000", fg: "#FFFFFF" },
+        { name: "Negro", bg: "#FFFFFF", fg: "#111111" },
+        { name: "Azul", bg: "#FFFFFF", fg: "#0A3D91" },
+        { name: "Verde", bg: "#04140B", fg: "#4ADE80" },
+        { name: "Crema", bg: "#F5EFE0", fg: "#1A1208" }
+      ];
+
+      const DEFAULTS = {
+        bg: "#000000",
+        fg: "#FFE066",
+        autoFit: true,
+        fontSize: 80,
+        fontFamily: "system-ui, -apple-system, Roboto, sans-serif",
+        upper: false,
+        lang: "es-PE",
+        interim: true,
+        wakeLock: true,
+        silenceStop: 4,
+        silencePunct: 2
+      };
+
+      const FIRST_WORD_GRACE = 6; // seconds allowed before the first word is heard
+
+      // localStorage may be unavailable (private mode, sandboxed iframe) — fall back to memory.
+      const store = (function () {
+        const memory = {};
+        let usable = false;
+        try {
+          window.localStorage.setItem("__t", "1");
+          window.localStorage.removeItem("__t");
+          usable = true;
+        } catch (e) {
+          usable = false;
+        }
+        return {
+          get(key, fallback) {
+            try {
+              const raw = usable ? window.localStorage.getItem(key) : memory[key];
+              return raw == null ? fallback : JSON.parse(raw);
+            } catch (e) {
+              return fallback;
+            }
+          },
+          set(key, value) {
+            const raw = JSON.stringify(value);
+            try {
+              if (usable) window.localStorage.setItem(key, raw);
+              else memory[key] = raw;
+            } catch (e) {
+              memory[key] = raw;
+            }
+          }
+        };
+      })();
+
+      const el = {
+        body: document.body,
+        display: document.getElementById("display"),
+        stage: document.getElementById("stage"),
+        statusText: document.getElementById("statusText"),
+        mainBtn: document.getElementById("mainBtn"),
+        mainBtnText: document.getElementById("mainBtnText"),
+        askBtn: document.getElementById("askBtn"),
+        settingsBtn: document.getElementById("settingsBtn"),
+        scrim: document.getElementById("scrim"),
+        themes: document.getElementById("themes"),
+        customBg: document.getElementById("customBg"),
+        customFg: document.getElementById("customFg"),
+        autoFit: document.getElementById("autoFit"),
+        fontSize: document.getElementById("fontSize"),
+        fontFamily: document.getElementById("fontFamily"),
+        upper: document.getElementById("upper"),
+        lang: document.getElementById("lang"),
+        interim: document.getElementById("interim"),
+        wakeLock: document.getElementById("wakeLock"),
+        silenceStop: document.getElementById("silenceStop"),
+        silenceStopVal: document.getElementById("silenceStopVal"),
+        silencePunct: document.getElementById("silencePunct"),
+        silencePunctVal: document.getElementById("silencePunctVal"),
+        history: document.getElementById("history"),
+        keyboardInput: document.getElementById("keyboardInput"),
+        showTyped: document.getElementById("showTyped")
+      };
+
+      const config = Object.assign({}, DEFAULTS, store.get("config", {}));
+      let history = store.get("history", []);
+      let listening = false;
+      let finalText = "";
+      let wakeLockRef = null;
+      let manualStop = false;
+      let askMode = false;
+
+      /* ---------- text sizing ---------- */
+
+      function fitText() {
+        const node = el.display;
+        if (!config.autoFit) {
+          node.style.fontSize = config.fontSize + "px";
+          return;
+        }
+        const maxW = el.stage.clientWidth - 32;
+        const maxH = el.stage.clientHeight - 8;
+        if (maxW <= 0 || maxH <= 0) return;
+
+        let low = 14;
+        let high = 460;
+        let best = low;
+        while (low <= high) {
+          const mid = Math.floor((low + high) / 2);
+          node.style.fontSize = mid + "px";
+          if (node.scrollHeight <= maxH && node.scrollWidth <= maxW) {
+            best = mid;
+            low = mid + 1;
+          } else {
+            high = mid - 1;
+          }
+        }
+        node.style.fontSize = best + "px";
+      }
+
+      function render(text, isInterim) {
+        const empty = !text || !text.trim();
+        el.display.textContent = empty ? "Presiona Hablar o Preguntar y di tu mensaje" : text;
+        el.display.classList.toggle("placeholder", empty);
+        el.display.classList.toggle("interim", !!isInterim && !empty);
+        fitText();
+      }
+
+      /* ---------- appearance ---------- */
+
+      function applyConfig() {
+        const root = document.documentElement.style;
+        root.setProperty("--bg", config.bg);
+        root.setProperty("--fg", config.fg);
+        root.setProperty("--accent", config.fg);
+        el.display.style.fontFamily = config.fontFamily;
+        el.display.style.textTransform = config.upper ? "uppercase" : "none";
+        el.customBg.value = config.bg;
+        el.customFg.value = config.fg;
+        el.autoFit.checked = config.autoFit;
+        el.fontSize.value = config.fontSize;
+        el.fontSize.disabled = config.autoFit;
+        el.fontFamily.value = config.fontFamily;
+        el.upper.checked = config.upper;
+        el.lang.value = config.lang;
+        el.interim.checked = config.interim;
+        el.wakeLock.checked = config.wakeLock;
+        el.silenceStop.value = config.silenceStop;
+        el.silencePunct.value = config.silencePunct;
+        el.silenceStopVal.textContent = config.silenceStop > 0 ? config.silenceStop + " s" : "Nunca";
+        el.silencePunctVal.textContent = config.silencePunct > 0 ? config.silencePunct + " s" : "Off";
+
+        Array.prototype.forEach.call(el.themes.children, function (btn) {
+          const on = btn.dataset.bg === config.bg && btn.dataset.fg === config.fg;
+          btn.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute("content", config.bg);
+
+        store.set("config", config);
+        fitText();
+      }
+
+      function update(key, value) {
+        config[key] = value;
+        applyConfig();
+      }
+
+      THEMES.forEach(function (theme) {
+        const btn = document.createElement("button");
+        btn.className = "theme";
+        btn.textContent = "Aa";
+        btn.style.background = theme.bg;
+        btn.style.color = theme.fg;
+        btn.dataset.bg = theme.bg;
+        btn.dataset.fg = theme.fg;
+        btn.setAttribute("aria-label", theme.name);
+        btn.addEventListener("click", function () {
+          config.bg = theme.bg;
+          config.fg = theme.fg;
+          applyConfig();
+        });
+        el.themes.appendChild(btn);
+      });
+
+      /* ---------- history ---------- */
+
+      function renderHistory() {
+        el.history.innerHTML = "";
+        if (!history.length) {
+          const p = document.createElement("p");
+          p.className = "hint";
+          p.textContent = "Todavía no hay mensajes.";
+          el.history.appendChild(p);
+          return;
+        }
+        history.forEach(function (text) {
+          const btn = document.createElement("button");
+          btn.textContent = text;
+          btn.addEventListener("click", function () {
+            finalText = text;
+            render(text, false);
+            closeSettings();
+          });
+          el.history.appendChild(btn);
+        });
+      }
+
+      function pushHistory(text) {
+        const clean = text.trim();
+        if (!clean) return;
+        history = [clean].concat(history.filter(function (h) { return h !== clean; })).slice(0, 12);
+        store.set("history", history);
+        renderHistory();
+      }
+
+      /* ---------- wake lock ---------- */
+
+      async function requestWakeLock() {
+        if (!config.wakeLock || !("wakeLock" in navigator)) return;
+        try {
+          wakeLockRef = await navigator.wakeLock.request("screen");
+        } catch (e) {
+          wakeLockRef = null;
+        }
+      }
+
+      function releaseWakeLock() {
+        if (wakeLockRef) {
+          wakeLockRef.release().catch(function () {});
+          wakeLockRef = null;
+        }
+      }
+
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible" && listening) requestWakeLock();
+      });
+
+      /* ---------- silence detection ---------- */
+
+      let lastVoiceAt = 0;
+      let heardSomething = false;
+      let punctuated = false;
+      let tickTimer = null;
+
+      function startSilenceWatch() {
+        stopSilenceWatch();
+        lastVoiceAt = Date.now();
+        heardSomething = false;
+        punctuated = false;
+        tickTimer = setInterval(tick, 200);
+      }
+
+      function stopSilenceWatch() {
+        if (tickTimer) {
+          clearInterval(tickTimer);
+          tickTimer = null;
+        }
+      }
+
+      function markVoice() {
+        lastVoiceAt = Date.now();
+        heardSomething = true;
+        punctuated = false;
+      }
+
+      // Message starts with a Spanish interrogative word (accented forms only,
+      // since unaccented "que/como/cuando..." are usually statements).
+      const QUESTION_START = new RegExp(
+        "^\\s*\u00bf?\\s*(?:(?:por|para|a|de|en|hasta|desde|hacia)\\s+)?" +
+        "(?:qu\u00e9|c\u00f3mo|ad\u00f3nde|d\u00f3nde|cu\u00e1ndo|qui\u00e9n(?:es)?|cu\u00e1l(?:es)?|cu\u00e1nt[oa]s?)" +
+        "(?![a-z\u00e1-\u00fa\u00fc\u00f1])",
+        "i"
+      );
+
+      // Appends a period (unless already punctuated), or wraps questions in
+      // ¿…? (always when forceQuestion, else detected), plus a line break.
+      function punctuate(text, forceQuestion) {
+        const trimmed = text.replace(/\s+$/, "");
+        if (!trimmed) return text;
+        const alreadyOpen = trimmed.charAt(0) === "\u00bf";
+
+        if ((forceQuestion || QUESTION_START.test(trimmed)) && !alreadyOpen) {
+          return "\u00bf" + trimmed.replace(/[.!?\u2026]+\s*$/, "") + "?\n";
+        }
+        if (!alreadyOpen && /\?\s*$/.test(trimmed)) {
+          return "\u00bf" + trimmed + "\n";
+        }
+
+        const ended = ".?!:;\u2026".indexOf(trimmed.slice(-1)) >= 0;
+        return (ended ? trimmed : trimmed + ".") + "\n";
+      }
+
+      function tick() {
+        if (!listening) return;
+        const idle = (Date.now() - lastVoiceAt) / 1000;
+
+        if (config.silencePunct > 0 && !punctuated && heardSomething &&
+            idle >= config.silencePunct && finalText.trim()) {
+          finalText = punctuate(finalText, askMode);
+          punctuated = true;
+          render(finalText.trim(), false);
+        }
+
+        if (config.silenceStop > 0) {
+          const limit = heardSomething
+            ? config.silenceStop
+            : Math.max(config.silenceStop, FIRST_WORD_GRACE);
+          if (idle >= limit) {
+            stop();
+            el.statusText.textContent = "Detenido por silencio";
+            return;
+          }
+          const left = Math.ceil(limit - idle);
+          el.statusText.textContent = idle >= 1 ? "Escuchando \u00b7 " + left : "Escuchando";
+        }
+      }
+
+      /* ---------- speech recognition ---------- */
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      let recognition = null;
+
+      if (!SpeechRecognition) {
+        el.body.classList.add("unsupported");
+        el.mainBtn.disabled = true;
+        el.askBtn.disabled = true;
+      } else {
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = function () {
+          setListening(true);
+          el.statusText.textContent = "Escuchando";
+        };
+
+        recognition.onresult = function (event) {
+          markVoice();
+          let interimText = "";
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const chunk = event.results[i][0].transcript;
+            if (event.results[i].isFinal) finalText += join(finalText, chunk);
+            else interimText += chunk;
+          }
+          if (interimText && config.interim) {
+            render((finalText + join(finalText, interimText)).trim(), true);
+          } else {
+            render(finalText.trim(), false);
+          }
+        };
+
+        // After a line break the engine still sends a leading space — drop it.
+        function join(base, chunk) {
+          return /\n$/.test(base) ? chunk.replace(/^\s+/, "") : chunk;
+        }
+
+        recognition.onerror = function (event) {
+          if (event.error === "no-speech") return;
+          manualStop = true;
+          setListening(false);
+          if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+            el.statusText.textContent = "Permiso de micrófono denegado";
+            render("Activa el permiso de micrófono para este sitio", false);
+          } else if (event.error === "network") {
+            el.statusText.textContent = "Sin conexión";
+          } else {
+            el.statusText.textContent = "Error: " + event.error;
+          }
+        };
+
+        recognition.onend = function () {
+          // Chrome cuts the stream after silence; keep it alive unless the user stopped it.
+          if (listening && !manualStop) {
+            try {
+              recognition.start();
+              return;
+            } catch (e) { /* fall through */ }
+          }
+          setListening(false);
+        };
+      }
+
+      function setListening(state) {
+        listening = state;
+        el.body.classList.toggle("listening", state);
+        el.askBtn.hidden = state;
+        el.mainBtnText.textContent = state ? "Detener" : "Hablar";
+        if (state) {
+          requestWakeLock();
+        } else {
+          stopSilenceWatch();
+          releaseWakeLock();
+          el.statusText.textContent = finalText ? "Mensaje listo" : "Listo";
+          if (finalText.trim()) pushHistory(finalText.trim());
+        }
+      }
+
+      function start(ask) {
+        if (!recognition) return;
+        finalText = "";
+        manualStop = false;
+        askMode = !!ask;
+        recognition.lang = config.lang;
+        recognition.interimResults = config.interim;
+        render("", false);
+        el.statusText.textContent = "Iniciando";
+        startSilenceWatch();
+        try {
+          recognition.start();
+        } catch (e) {
+          recognition.stop();
+        }
+      }
+
+      function stop() {
+        manualStop = true;
+        if (recognition) recognition.stop();
+        if (askMode && !punctuated && finalText.trim()) {
+          finalText = punctuate(finalText, true);
+          punctuated = true;
+        }
+        setListening(false);
+        render(finalText.trim(), false);
+      }
+
+      el.mainBtn.addEventListener("click", function () {
+        if (listening) stop();
+        else start(false);
+      });
+
+      el.askBtn.addEventListener("click", function () {
+        if (listening) stop();
+        else start(true);
+      });
+
+      /* ---------- settings ---------- */
+
+      function openSettings() { el.body.classList.add("settings-open"); }
+      function closeSettings() { el.body.classList.remove("settings-open"); }
+
+      el.settingsBtn.addEventListener("click", openSettings);
+      el.scrim.addEventListener("click", closeSettings);
+
+      el.customBg.addEventListener("input", function (e) { update("bg", e.target.value); });
+      el.customFg.addEventListener("input", function (e) { update("fg", e.target.value); });
+      el.autoFit.addEventListener("change", function (e) { update("autoFit", e.target.checked); });
+      el.fontSize.addEventListener("input", function (e) { update("fontSize", Number(e.target.value)); });
+      el.fontFamily.addEventListener("change", function (e) { update("fontFamily", e.target.value); });
+      el.upper.addEventListener("change", function (e) { update("upper", e.target.checked); });
+      el.lang.addEventListener("change", function (e) { update("lang", e.target.value); });
+      el.interim.addEventListener("change", function (e) { update("interim", e.target.checked); });
+      el.silenceStop.addEventListener("input", function (e) { update("silenceStop", Number(e.target.value)); });
+      el.silencePunct.addEventListener("input", function (e) { update("silencePunct", Number(e.target.value)); });
+      el.wakeLock.addEventListener("change", function (e) {
+        update("wakeLock", e.target.checked);
+        if (!e.target.checked) releaseWakeLock();
+      });
+
+      el.showTyped.addEventListener("click", function () {
+        const text = el.keyboardInput.value.trim();
+        if (!text) return;
+        finalText = text;
+        render(text, false);
+        pushHistory(text);
+        el.keyboardInput.value = "";
+        closeSettings();
+      });
+
+      /* ---------- layout ---------- */
+
+      let resizeTimer = null;
+      window.addEventListener("resize", function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(fitText, 80);
+      });
+
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", function () {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(fitText, 80);
+        });
+      }
+
+      applyConfig();
+      renderHistory();
+      render("", false);
+    })();
+  </script>
+</body>
+</html>
