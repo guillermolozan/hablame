@@ -90,7 +90,7 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--ui-fg);
-      opacity: 0.55;
+      opacity: 0.75;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -138,6 +138,7 @@
       position: relative;
       padding: 4px 16px;
       min-height: 0;
+      display: block;
     }
 
     #display {
@@ -159,7 +160,7 @@
 
     #display.placeholder {
       font-weight: 500;
-      opacity: 0.35;
+      opacity: 0.5;
       letter-spacing: 0;
     }
 
@@ -517,9 +518,9 @@
     <button class="icon-btn" id="settingsBtn" aria-label="Ajustes">&#9881;</button>
   </div>
 
-  <div id="stage">
+  <main id="stage">
     <div id="display" class="placeholder" aria-live="polite">Presiona Hablar o Preguntar y di tu mensaje</div>
-  </div>
+  </main>
 
   <div class="actions">
     <button class="action" id="mainBtn"><span id="mainBtnText">Hablar</span></button>
@@ -537,8 +538,8 @@
       <div class="row">
         <span>Personalizado</span>
         <span>
-          <input type="color" id="customBg" value="#000000" aria-label="Color de fondo">
-          <input type="color" id="customFg" value="#FFE066" aria-label="Color del texto">
+          <input type="color" id="customBg" value="#000000" aria-label="Color de fondo personalizado">
+          <input type="color" id="customFg" value="#FFE066" aria-label="Color de texto personalizado">
         </span>
       </div>
     </div>
@@ -547,15 +548,15 @@
       <span class="label">Texto</span>
       <div class="row">
         <span>Ajustar a la pantalla</span>
-        <label class="switch"><input type="checkbox" id="autoFit" checked><span class="track"></span></label>
+        <label class="switch"><input type="checkbox" id="autoFit" checked aria-label="Ajustar texto a la pantalla"><span class="track"></span></label>
       </div>
       <div class="row">
         <span>Tamaño manual</span>
-        <input type="range" id="fontSize" min="24" max="220" step="2" value="80" disabled>
+        <input type="range" id="fontSize" min="24" max="220" step="2" value="80" disabled aria-label="Tamaño manual de texto">
       </div>
       <div class="row">
         <span>Tipografía</span>
-        <select id="fontFamily">
+        <select id="fontFamily" aria-label="Tipografía">
           <option value="system-ui, -apple-system, Roboto, sans-serif">Sans (estándar)</option>
           <option value="Georgia, 'Times New Roman', serif">Serif</option>
           <option value="ui-monospace, 'Courier New', monospace">Monoespaciada</option>
@@ -563,7 +564,7 @@
       </div>
       <div class="row">
         <span>Todo en MAYÚSCULAS</span>
-        <label class="switch"><input type="checkbox" id="upper"><span class="track"></span></label>
+        <label class="switch"><input type="checkbox" id="upper" aria-label="Todo en mayúsculas"><span class="track"></span></label>
       </div>
     </div>
 
@@ -571,7 +572,7 @@
       <span class="label">Voz</span>
       <div class="row">
         <span>Idioma</span>
-        <select id="lang">
+        <select id="lang" aria-label="Idioma de reconocimiento de voz">
           <option value="es-PE">Español (Perú)</option>
           <option value="es-ES">Español (España)</option>
           <option value="es-MX">Español (México)</option>
@@ -581,7 +582,7 @@
       </div>
       <div class="row">
         <span>Ver mientras hablo</span>
-        <label class="switch"><input type="checkbox" id="interim" checked><span class="track"></span></label>
+        <label class="switch"><input type="checkbox" id="interim" checked aria-label="Ver mientras hablo"><span class="track"></span></label>
       </div>
       <div class="row">
         <span>Detener tras silencio</span>
@@ -599,14 +600,14 @@
       </div>
       <div class="row">
         <span>Mantener pantalla encendida</span>
-        <label class="switch"><input type="checkbox" id="wakeLock" checked><span class="track"></span></label>
+        <label class="switch"><input type="checkbox" id="wakeLock" checked aria-label="Mantener pantalla encendida"><span class="track"></span></label>
       </div>
       <p class="hint">Mueve los sliders al mínimo para desactivarlos. Antes de tu primera palabra se espera al menos 6 s, para que no se corte mientras acomodas el celular.</p>
     </div>
 
     <div class="group">
       <span class="label">Responder escribiendo</span>
-      <textarea id="keyboardInput" placeholder="Escribe aquí y se mostrará en grande"></textarea>
+      <textarea id="keyboardInput" placeholder="Escribe aquí y se mostrará en grande" aria-label="Escribe un mensaje para mostrar en pantalla"></textarea>
       <button class="ghost" id="showTyped">Mostrar en pantalla</button>
     </div>
 

@@ -1,6 +1,6 @@
 # LEELO
 
-> LEELO (https://leelo.info) es una aplicación web gratuita que convierte la voz en texto gigante en pantalla: presionas un botón, hablas, y lo que dices aparece al instante escrito con tipografía enorme para mostrárselo a otra persona.
+> [LEELO](https://leelo.info) es una aplicación web gratuita que convierte la voz en texto gigante en pantalla: presionas un botón, hablas, y lo que dices aparece al instante escrito con tipografía enorme para mostrárselo a otra persona. Desarrollada por [Guillermo Lozan](https://waridigital.com).
 
 ## Qué hace
 
@@ -30,4 +30,5 @@
 
 ## Autor
 
-- Guillermo Lozan — https://waridigital.com
+- Guillermo Lozan — [waridigital.com](https://waridigital.com)
+- App: [https://leelo.info](https://leelo.info)
