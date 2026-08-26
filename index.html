@@ -566,7 +566,7 @@
       };
 
       const FIRST_WORD_GRACE = 6; // seconds allowed before the first word is heard
-      const APP_VERSION = "1.2.0";
+      const APP_VERSION = "1.2.1";
 
       // localStorage may be unavailable (private mode, sandboxed iframe) — fall back to memory.
       const store = (function () {
@@ -646,8 +646,8 @@
           node.style.fontSize = config.fontSize + "px";
           return;
         }
-        const maxW = el.stage.clientWidth - 32;
-        const maxH = el.stage.clientHeight - 8;
+        const maxW = node.clientWidth;
+        const maxH = node.clientHeight;
         if (maxW <= 0 || maxH <= 0) return;
 
         let low = 14;
