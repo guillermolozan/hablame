@@ -14,6 +14,8 @@
       --ui: rgba(255, 255, 255, 0.14);
       --ui-fg: rgba(255, 255, 255, 0.85);
       --accent: #FFE066;
+      --blue: #7f7fff;
+      --red: #E5484D;
       --safe-b: env(safe-area-inset-bottom, 0px);
       --safe-t: env(safe-area-inset-top, 0px);
     }
@@ -138,10 +140,10 @@
     .action {
       flex: 1 1 auto;
       min-height: 74px;
-      border: 0;
+      border: 3px solid var(--fg);
       border-radius: 18px;
-      background: var(--accent);
-      color: var(--bg);
+      background: transparent;
+      color: var(--fg);
       font-size: 21px;
       font-weight: 700;
       font-family: inherit;
@@ -158,13 +160,14 @@
     .action[hidden] { display: none; }
 
     .action.alt {
-      background: #E5484D;
-      color: #ffffff;
+      border-color: var(--blue);
+      color: var(--blue);
     }
 
-    body.listening .action { background: #E5484D; color: #ffffff; }
-
-    .action .glyph { font-size: 26px; }
+    body.listening .action {
+      border-color: var(--red);
+      color: var(--red);
+    }
 
     /* ---------- settings sheet ---------- */
 
@@ -332,13 +335,16 @@
       margin-top: 8px;
     }
 
-    #history {
+    #history, #starred {
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
 
-    #history button {
+    .msg-row { display: flex; gap: 6px; }
+
+    .msg-text {
+      flex: 1 1 auto;
       text-align: left;
       background: #26262c;
       color: #d8d8de;
@@ -352,6 +358,20 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    .msg-act {
+      flex: 0 0 auto;
+      width: 44px;
+      border: 0;
+      border-radius: 10px;
+      background: #26262c;
+      color: #8b8b96;
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .msg-act.on { color: #FFE066; }
 
     #keyboardInput {
       width: 100%;
@@ -420,6 +440,7 @@
 
       #mainBtn::after { content: "H"; }
       #askBtn::after { content: "P"; }
+      body.listening #mainBtn::after { content: "D"; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -443,7 +464,7 @@
 
   <div class="actions">
     <button class="action" id="mainBtn"><span id="mainBtnText">Hablar</span></button>
-    <button class="action alt" id="askBtn"><span class="glyph">&iquest;</span><span>Preguntar</span></button>
+    <button class="action alt" id="askBtn"><span>Preguntar</span></button>
   </div>
 
   <div class="scrim" id="scrim"></div>
@@ -506,15 +527,15 @@
       <div class="row">
         <span>Detener tras silencio</span>
         <span class="ctl">
-          <input type="range" id="silenceStop" min="0" max="15" step="1" value="4" aria-label="Segundos de silencio para detener">
-          <b id="silenceStopVal">4 s</b>
+          <input type="range" id="silenceStop" min="0" max="15" step="1" value="3" aria-label="Segundos de silencio para detener">
+          <b id="silenceStopVal">3 s</b>
         </span>
       </div>
       <div class="row">
         <span>Punto y salto de línea</span>
         <span class="ctl">
-          <input type="range" id="silencePunct" min="0" max="6" step="0.5" value="2" aria-label="Segundos de silencio para puntuar">
-          <b id="silencePunctVal">2 s</b>
+          <input type="range" id="silencePunct" min="0" max="6" step="0.5" value="1" aria-label="Segundos de silencio para puntuar">
+          <b id="silencePunctVal">1 s</b>
         </span>
       </div>
       <div class="row">
@@ -531,11 +552,17 @@
     </div>
 
     <div class="group">
+      <span class="label">Mensajes destacados</span>
+      <div id="starred"></div>
+    </div>
+
+    <div class="group">
       <span class="label">Mensajes recientes</span>
       <div id="history"></div>
     </div>
 
     <p class="hint" id="versionLabel"></p>
+    <p class="hint">Desarrollado por Guillermo Lozan</p>
   </div>
 
   <script>
@@ -561,12 +588,12 @@
         lang: "es-PE",
         interim: true,
         wakeLock: true,
-        silenceStop: 4,
-        silencePunct: 2
+        silenceStop: 3,
+        silencePunct: 1
       };
 
       const FIRST_WORD_GRACE = 6; // seconds allowed before the first word is heard
-      const APP_VERSION = "1.2.1";
+      const APP_VERSION = "1.3.0";
 
       // localStorage may be unavailable (private mode, sandboxed iframe) — fall back to memory.
       const store = (function () {
@@ -625,6 +652,7 @@
         silencePunct: document.getElementById("silencePunct"),
         silencePunctVal: document.getElementById("silencePunctVal"),
         history: document.getElementById("history"),
+        starred: document.getElementById("starred"),
         keyboardInput: document.getElementById("keyboardInput"),
         showTyped: document.getElementById("showTyped"),
         versionLabel: document.getElementById("versionLabel")
@@ -632,6 +660,7 @@
 
       const config = Object.assign({}, DEFAULTS, store.get("config", {}));
       let history = store.get("history", []);
+      let starred = store.get("starred", []);
       let listening = false;
       let finalText = "";
       let wakeLockRef = null;
@@ -732,26 +761,68 @@
         el.themes.appendChild(btn);
       });
 
-      /* ---------- history ---------- */
+      /* ---------- history & starred ---------- */
+
+      function msgRow(text, isStarred) {
+        const row = document.createElement("div");
+        row.className = "msg-row";
+
+        const btn = document.createElement("button");
+        btn.className = "msg-text";
+        btn.textContent = text;
+        btn.addEventListener("click", function () {
+          finalText = text;
+          render(text, false);
+          closeSettings();
+        });
+
+        const star = document.createElement("button");
+        star.className = "msg-act" + (isStarred ? " on" : "");
+        star.innerHTML = "&#9733;";
+        star.setAttribute("aria-label", isStarred ? "Quitar de destacados" : "Destacar");
+        star.addEventListener("click", function () { toggleStar(text); });
+
+        const del = document.createElement("button");
+        del.className = "msg-act";
+        del.innerHTML = "&#128465;";
+        del.setAttribute("aria-label", "Eliminar");
+        del.addEventListener("click", function () {
+          if (isStarred) deleteStarred(text);
+          else deleteRecent(text);
+        });
+
+        row.appendChild(btn);
+        row.appendChild(star);
+        row.appendChild(del);
+        return row;
+      }
+
+      function emptyHint(node, text) {
+        const p = document.createElement("p");
+        p.className = "hint";
+        p.textContent = text;
+        node.appendChild(p);
+      }
 
       function renderHistory() {
         el.history.innerHTML = "";
         if (!history.length) {
-          const p = document.createElement("p");
-          p.className = "hint";
-          p.textContent = "Todavía no hay mensajes.";
-          el.history.appendChild(p);
+          emptyHint(el.history, "Todavía no hay mensajes.");
           return;
         }
         history.forEach(function (text) {
-          const btn = document.createElement("button");
-          btn.textContent = text;
-          btn.addEventListener("click", function () {
-            finalText = text;
-            render(text, false);
-            closeSettings();
-          });
-          el.history.appendChild(btn);
+          el.history.appendChild(msgRow(text, false));
+        });
+      }
+
+      function renderStarred() {
+        el.starred.innerHTML = "";
+        if (!starred.length) {
+          emptyHint(el.starred, "Todavía no hay mensajes destacados.");
+          return;
+        }
+        starred.forEach(function (text) {
+          el.starred.appendChild(msgRow(text, true));
         });
       }
 
@@ -761,6 +832,28 @@
         history = [clean].concat(history.filter(function (h) { return h !== clean; })).slice(0, 12);
         store.set("history", history);
         renderHistory();
+      }
+
+      function toggleStar(text) {
+        const on = starred.indexOf(text) >= 0;
+        starred = on
+          ? starred.filter(function (s) { return s !== text; })
+          : [text].concat(starred);
+        store.set("starred", starred);
+        renderHistory();
+        renderStarred();
+      }
+
+      function deleteRecent(text) {
+        history = history.filter(function (h) { return h !== text; });
+        store.set("history", history);
+        renderHistory();
+      }
+
+      function deleteStarred(text) {
+        starred = starred.filter(function (s) { return s !== text; });
+        store.set("starred", starred);
+        renderStarred();
       }
 
       /* ---------- wake lock ---------- */
@@ -1074,6 +1167,7 @@
 
       applyConfig();
       renderHistory();
+      renderStarred();
       render("", false);
       el.versionLabel.textContent = "Versi\u00f3n " + APP_VERSION;
       document.title = "H\u00e1blame v" + APP_VERSION;
