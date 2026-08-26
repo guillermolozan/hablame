@@ -834,6 +834,7 @@
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       let recognition = null;
+      let sessionFinals = 0;
 
       if (!SpeechRecognition) {
         el.body.classList.add("unsupported");
@@ -846,6 +847,7 @@
 
         recognition.onstart = function () {
           setListening(true);
+          sessionFinals = 0;
           el.statusText.textContent = "Escuchando";
         };
 
@@ -854,19 +856,47 @@
           let interimText = "";
           for (let i = event.resultIndex; i < event.results.length; i++) {
             const chunk = event.results[i][0].transcript;
-            if (event.results[i].isFinal) finalText += join(finalText, chunk);
-            else interimText += chunk;
+            if (event.results[i].isFinal) {
+              finalText = appendFinal(finalText, chunk);
+              sessionFinals++;
+            } else {
+              interimText += chunk;
+            }
           }
           if (interimText && config.interim) {
-            render((finalText + join(finalText, interimText)).trim(), true);
+            render(smartJoin(finalText, interimText), true);
           } else {
             render(finalText.trim(), false);
           }
         };
 
-        // After a line break the engine still sends a leading space — drop it.
-        function join(base, chunk) {
-          return /\n$/.test(base) ? chunk.replace(/^\s+/, "") : chunk;
+        // Joins chunks with a separating space — Android Chrome delivers them
+        // without one.
+        function smartJoin(base, chunk) {
+          const clean = chunk.trim();
+          if (!clean) return base;
+          const b = base.replace(/\s+$/, "");
+          if (!b) return clean;
+          if (/\n$/.test(base)) return b + "\n" + clean;
+          if (/^[.,;:!?\u2026]/.test(clean)) return b + clean;
+          return b + " " + clean;
+        }
+
+        function appendFinal(base, chunk) {
+          const clean = chunk.trim();
+          if (!clean) return base;
+          if (sessionFinals === 0) {
+            // After each restart Chrome Android re-sends the previous final:
+            // identical (skip) or cumulative including what we have (replace).
+            const norm = function (s) {
+              return s.replace(/[.!?\u2026]/g, " ").replace(/\s+/g, " ").trim();
+            };
+            const nb = norm(base);
+            const nc = norm(clean);
+            if (nb.endsWith(nc)) return base;
+            if (nc.startsWith(nb)) return clean;
+          }
+          return smartJoin(base, clean);
         }
 
         recognition.onerror = function (event) {
