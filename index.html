@@ -391,6 +391,37 @@
 
     body.unsupported .unsupported { display: block; }
 
+    /* ---------- landscape: no top bar, buttons stacked on the right ---------- */
+
+    @media (orientation: landscape) {
+      body { flex-direction: row; }
+
+      .bar { display: none; }
+
+      #stage { padding: 4px 8px; }
+
+      .actions {
+        flex: 0 0 auto;
+        flex-direction: column;
+        justify-content: center;
+        width: 86px;
+        padding: 10px calc(env(safe-area-inset-right, 0px) + 10px) 10px 0;
+      }
+
+      .action {
+        flex: 0 0 auto;
+        height: 76px;
+        min-height: 0;
+        font-size: 28px;
+        padding: 0;
+      }
+
+      .action span { display: none; }
+
+      #mainBtn::after { content: "H"; }
+      #askBtn::after { content: "P"; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       * { animation: none !important; transition: none !important; }
     }
@@ -535,7 +566,7 @@
       };
 
       const FIRST_WORD_GRACE = 6; // seconds allowed before the first word is heard
-      const APP_VERSION = "1.1.0";
+      const APP_VERSION = "1.2.0";
 
       // localStorage may be unavailable (private mode, sandboxed iframe) — fall back to memory.
       const store = (function () {
