@@ -1,0 +1,33 @@
+# LEELO
+
+> LEELO (https://leelo.info) es una aplicación web gratuita que convierte la voz en texto gigante en pantalla: presionas un botón, hablas, y lo que dices aparece al instante escrito con tipografía enorme para mostrárselo a otra persona.
+
+## Qué hace
+
+- Reconocimiento de voz en el navegador (Web Speech API), sin instalar nada.
+- El mensaje hablado se muestra en letra gigante que se auto-ajusta al tamaño de la pantalla.
+- Dos botones: "Hablar" (detecta preguntas automáticamente y agrega signos ¿?) y "Preguntar" (fuerza formato de pregunta).
+- Puntuación automática por silencio (punto y salto de línea) y detención automática tras silencio.
+- Mensajes recientes, mensajes destacados, copiado al portapapeles con presión larga.
+- Temas de color, tamaño y tipografía ajustables, orientación vertical y horizontal.
+- Funciona sin conexión (PWA instalable).
+
+## Para quién es
+
+- Personas con dificultad para hablar (afonía, disartria, intubación, laringectomía).
+- Comunicación en lugares ruidosos (conciertos, fábricas, motos).
+- Mostrar mensajes rápidos a distancia sin levantar la voz.
+
+## Cómo funciona
+
+- Un solo archivo HTML sin dependencias ni build. Sin cuentas, sin servidores: todo el procesamiento de voz lo hace el navegador.
+- Navegadores compatibles: Chrome (Android y escritorio) y Safari (iOS 17+). Requiere conexión para el reconocimiento de voz.
+- Idiomas de reconocimiento: español (Perú, España, México), inglés (US), portugués (Brasil).
+
+## Datos y privacidad
+
+- No recolecta datos personales. Los mensajes recientes y destacados se guardan solo en el dispositivo (localStorage).
+
+## Autor
+
+- Guillermo Lozan — https://waridigital.com

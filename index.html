@@ -13,6 +13,35 @@
   <meta property="og:description" content="Habla y tu mensaje aparece en letra gigante para mostrarlo a los demás.">
   <meta property="og:url" content="https://leelo.info/">
   <meta property="og:type" content="website">
+  <meta property="og:image" content="https://leelo.info/icons/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="LEELO">
+  <meta name="twitter:description" content="Habla y tu mensaje aparece en letra gigante para mostrarlo a los demás.">
+  <meta name="twitter:image" content="https://leelo.info/icons/og-image.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="LEELO">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "LEELO",
+    "alternateName": "leelo.info",
+    "url": "https://leelo.info/",
+    "description": "Habla y tu mensaje aparece en letra gigante para mostrarlo a los demás. Reconocimiento de voz en el celular, sin instalar nada.",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Web",
+    "inLanguage": "es",
+    "browserRequirements": "Requiere Chrome o Safari con Web Speech API",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "author": { "@type": "Person", "name": "Guillermo Lozan", "url": "https://waridigital.com" }
+  }
+  </script>
   <style>
     :root {
       --bg: #000000;
@@ -623,7 +652,7 @@
       };
 
       const FIRST_WORD_GRACE = 6; // seconds allowed before the first word is heard
-      const APP_VERSION = "1.5.0";
+      const APP_VERSION = "1.6.0";
 
       // localStorage may be unavailable (private mode, sandboxed iframe) — fall back to memory.
       const store = (function () {
@@ -1268,6 +1297,10 @@
       render("", false);
       el.versionLabel.textContent = "Versi\u00f3n " + APP_VERSION;
       document.title = "LEELO v" + APP_VERSION;
+
+      if ("serviceWorker" in navigator && location.protocol === "https:") {
+        navigator.serviceWorker.register("./sw.js").catch(function () {});
+      }
     })();
   </script>
 </body>
