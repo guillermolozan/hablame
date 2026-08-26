@@ -503,6 +503,8 @@
       <span class="label">Mensajes recientes</span>
       <div id="history"></div>
     </div>
+
+    <p class="hint" id="versionLabel"></p>
   </div>
 
   <script>
@@ -533,6 +535,7 @@
       };
 
       const FIRST_WORD_GRACE = 6; // seconds allowed before the first word is heard
+      const APP_VERSION = "1.0.0";
 
       // localStorage may be unavailable (private mode, sandboxed iframe) — fall back to memory.
       const store = (function () {
@@ -592,7 +595,8 @@
         silencePunctVal: document.getElementById("silencePunctVal"),
         history: document.getElementById("history"),
         keyboardInput: document.getElementById("keyboardInput"),
-        showTyped: document.getElementById("showTyped")
+        showTyped: document.getElementById("showTyped"),
+        versionLabel: document.getElementById("versionLabel")
       };
 
       const config = Object.assign({}, DEFAULTS, store.get("config", {}));
@@ -1029,6 +1033,8 @@
       applyConfig();
       renderHistory();
       render("", false);
+      el.versionLabel.textContent = "Versi\u00f3n " + APP_VERSION;
+      document.title = "H\u00e1blame v" + APP_VERSION;
     })();
   </script>
 </body>
