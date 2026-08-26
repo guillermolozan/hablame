@@ -1,9 +1,9 @@
 # AGENTS.md
 
-Single-file web app: everything (HTML, CSS, JS) lives in `hablame.html`. No build system, no dependencies, no tests. Don't scaffold extra files or tooling.
+Single-file web app: everything (HTML, CSS, JS) lives in `index.html`. No build system, no dependencies, no tests. Don't scaffold extra files or tooling.
 
 ## Running / testing
-- Open `hablame.html` directly, or serve statically (e.g. `python3 -m http.server`).
+- Open `index.html` directly, or serve statically (e.g. `python3 -m http.server`).
 - Verify manually in **Chrome** or **Safari (iOS 17+)** — Firefox lacks the Web Speech API and just shows the unsupported banner.
 - Microphone access requires a secure context; if permission fails from `file://`, serve over `http://localhost`.
 

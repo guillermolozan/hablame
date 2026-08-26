@@ -1,10 +1,12 @@
 # Háblame
 
-App web de un solo archivo (`hablame.html`) que convierte tu voz en texto grande en pantalla. Pensada para mostrar mensajes en el celular: presiona, habla, y lo dicho aparece con tipografía gigante y auto-ajustada.
+App web de un solo archivo (`index.html`) que convierte tu voz en texto grande en pantalla. Pensada para mostrar mensajes en el celular: presiona, habla, y lo dicho aparece con tipografía gigante y auto-ajustada.
+
+**En línea**: https://guillermolozan.github.io/hablame/
 
 ## Uso
 
-Abre `hablame.html` en **Chrome** (Android/escritorio) o **Safari (iOS 17+)**. No requiere instalación ni servidor; si el permiso de micrófono falla desde `file://`, sírvelo localmente:
+Abre `index.html` en **Chrome** (Android/escritorio) o **Safari (iOS 17+)**. No requiere instalación ni servidor; si el permiso de micrófono falla desde `file://`, sírvelo localmente:
 
 ```sh
 python3 -m http.server
@@ -23,4 +25,4 @@ Firefox no es compatible (no tiene Web Speech API).
 
 ## Notas técnicas
 
-Todo vive en `hablame.html` — HTML, CSS y JS, sin build ni dependencias. La persistencia usa localStorage con respaldo en memoria si no está disponible. El ajuste de texto usa búsqueda binaria sobre el tamaño de fuente.
+Todo vive en `index.html` — HTML, CSS y JS, sin build ni dependencias. La persistencia usa localStorage con respaldo en memoria si no está disponible. El ajuste de texto usa búsqueda binaria sobre el tamaño de fuente.
