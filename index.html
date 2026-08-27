@@ -85,6 +85,13 @@
       padding: calc(var(--safe-t) + 8px) 12px 8px;
     }
 
+    .bar-btns {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+
     .status {
       font-size: 13px;
       letter-spacing: 0.08em;
@@ -440,6 +447,40 @@
 
     .hint a { color: #7f7fff; }
 
+    .qr-scrim {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      display: none;
+      place-items: center;
+      z-index: 30;
+      padding: 24px;
+    }
+
+    body.qr-open .qr-scrim { display: grid; }
+
+    .qr-box {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 28px;
+      max-width: min(86vw, 86vh);
+      text-align: center;
+    }
+
+    .qr-box img {
+      display: block;
+      width: 100%;
+      height: auto;
+      image-rendering: pixelated;
+    }
+
+    .qr-box p {
+      margin-top: 14px;
+      font-size: 22px;
+      font-weight: 700;
+      color: #111111;
+    }
+
     #toast {
       position: fixed;
       top: calc(var(--safe-t) + 14px);
@@ -472,14 +513,21 @@
     /* ---------- landscape: no top bar, buttons stacked on the right ---------- */
 
     @media (orientation: landscape) {
-      body { flex-direction: row; }
+      body { flex-direction: row; flex-wrap: wrap; }
 
-      .bar { display: none; }
+      .bar { flex: 1 1 100%; }
 
-      #stage { padding: 4px 8px; }
+      #stage {
+        flex: 1 1 100%;
+        height: calc(100% - 60px);
+      }
 
       .actions {
-        flex: 0 0 auto;
+        height: auto;
+        position: absolute;
+        right: 0;
+        top: 60px;
+        bottom: 0;
         flex-direction: column;
         justify-content: center;
         width: 86px;
@@ -496,9 +544,9 @@
 
       .action span { display: none; }
 
-      #mainBtn::after { content: "H"; }
+      #mainBtn::after { content: "A"; }
       #askBtn::after { content: "P"; }
-      body.listening #mainBtn::after { content: "D"; }
+      body.listening #mainBtn::after { content: "X"; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -513,17 +561,28 @@
 
   <div id="toast" role="status"></div>
 
+  <div class="qr-scrim" id="qrScrim">
+    <div class="qr-box">
+      <img src="icons/qr.png" alt="Código QR para abrir leelo.info">
+      <p>leelo.info</p>
+    </div>
+  </div>
+
   <div class="bar">
     <div class="status"><span class="dot"></span><span id="statusText">LEELO.INFO</span></div>
-    <button class="icon-btn" id="settingsBtn" aria-label="Ajustes">&#9881;</button>
+    <div class="bar-btns">
+      <button class="icon-btn" id="helpBtn" aria-label="Qué es LEELO">?</button>
+      <button class="icon-btn" id="qrBtn" aria-label="Mostrar código QR de leelo.info">&#9641;</button>
+      <button class="icon-btn" id="settingsBtn" aria-label="Ajustes">&#9881;</button>
+    </div>
   </div>
 
   <main id="stage">
-    <div id="display" class="placeholder" aria-live="polite">Presiona Hablar o Preguntar y di tu mensaje</div>
+    <div id="display" class="placeholder" aria-live="polite">Presiona Afirmar o Preguntar y habla</div>
   </main>
 
   <div class="actions">
-    <button class="action" id="mainBtn"><span id="mainBtnText">Hablar</span></button>
+    <button class="action" id="mainBtn"><span id="mainBtnText">Afirmar</span></button>
     <button class="action alt" id="askBtn"><span>Preguntar</span></button>
   </div>
 
@@ -653,7 +712,7 @@
       };
 
       const FIRST_WORD_GRACE = 6; // seconds allowed before the first word is heard
-      const APP_VERSION = "1.6.1";
+      const APP_VERSION = "1.7.1";
 
       // localStorage may be unavailable (private mode, sandboxed iframe) — fall back to memory.
       const store = (function () {
@@ -696,6 +755,9 @@
         mainBtnText: document.getElementById("mainBtnText"),
         askBtn: document.getElementById("askBtn"),
         settingsBtn: document.getElementById("settingsBtn"),
+        helpBtn: document.getElementById("helpBtn"),
+        qrBtn: document.getElementById("qrBtn"),
+        qrScrim: document.getElementById("qrScrim"),
         scrim: document.getElementById("scrim"),
         themes: document.getElementById("themes"),
         customBg: document.getElementById("customBg"),
@@ -756,11 +818,26 @@
         node.style.fontSize = best + "px";
       }
 
+      const landscapeMQ = window.matchMedia("(orientation: landscape)");
+
+      function placeholderText() {
+        return landscapeMQ.matches
+          ? "Presiona A para Afirmar o P para Preguntar y habla"
+          : "Presiona Afirmar o Preguntar y habla";
+      }
+
       function render(text, isInterim) {
         const empty = !text || !text.trim();
-        el.display.textContent = empty ? "Presiona Hablar o Preguntar y di tu mensaje" : text;
+        el.display.textContent = empty ? placeholderText() : text;
         el.display.classList.toggle("placeholder", empty);
         el.display.classList.toggle("interim", !!isInterim && !empty);
+        fitText();
+      }
+
+      function renderListening() {
+        el.display.textContent = "ESCUCHANDO...";
+        el.display.classList.remove("placeholder");
+        el.display.classList.add("interim");
         fitText();
       }
 
@@ -1014,8 +1091,6 @@
             el.statusText.textContent = "Detenido por silencio";
             return;
           }
-          const left = Math.ceil(limit - idle);
-          el.statusText.textContent = idle >= 1 ? "Escuchando \u00b7 " + left : "Escuchando";
         }
       }
 
@@ -1038,7 +1113,6 @@
 
         recognition.onstart = function () {
           setListening(true);
-          el.statusText.textContent = "Escuchando";
         };
 
         recognition.onresult = function (event) {
@@ -1049,7 +1123,9 @@
             if (event.results[i].isFinal) addFinal(chunk);
             else interimText += chunk;
           }
-          if (interimText && config.interim) {
+          if (!finalText.trim() && !interimText.trim()) {
+            renderListening();
+          } else if (interimText && config.interim) {
             render(smartJoin(finalText, interimText), true);
           } else {
             render(finalText.trim(), false);
@@ -1126,7 +1202,7 @@
         listening = state;
         el.body.classList.toggle("listening", state);
         el.askBtn.hidden = state;
-        el.mainBtnText.textContent = state ? "Detener" : "Hablar";
+        el.mainBtnText.textContent = state ? "Detener" : "Afirmar";
         if (state) {
           requestWakeLock();
         } else {
@@ -1147,8 +1223,8 @@
         segBase = "";
         recognition.lang = config.lang;
         recognition.interimResults = config.interim;
-        render("", false);
-        el.statusText.textContent = "Iniciando";
+        renderListening();
+        el.statusText.textContent = "LEELO.INFO";
         startSilenceWatch();
         try {
           recognition.start();
@@ -1185,6 +1261,29 @@
 
       el.settingsBtn.addEventListener("click", openSettings);
       el.scrim.addEventListener("click", closeSettings);
+
+      el.qrBtn.addEventListener("click", function () {
+        if (listening) stop();
+        el.body.classList.add("qr-open");
+      });
+      el.qrScrim.addEventListener("click", function () {
+        el.body.classList.remove("qr-open");
+      });
+
+      el.helpBtn.addEventListener("click", function () {
+        if (listening) return;
+        finalText = "Esta aplicaci\u00f3n sirve para hablar con personas con discapacidad auditiva";
+        render(finalText, false);
+      });
+
+      function onOrientationChange() {
+        if (!finalText.trim() && !listening) render("", false);
+      }
+      if (landscapeMQ.addEventListener) {
+        landscapeMQ.addEventListener("change", onOrientationChange);
+      } else if (landscapeMQ.addListener) {
+        landscapeMQ.addListener(onOrientationChange);
+      }
 
       el.customBg.addEventListener("input", function (e) { update("bg", e.target.value); });
       el.customFg.addEventListener("input", function (e) { update("fg", e.target.value); });

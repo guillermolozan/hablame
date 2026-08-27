@@ -1,4 +1,4 @@
-const CACHE = "leelo-v1.6.1";
+const CACHE = "leelo-v1.7.1";
 const ASSETS = [
   "./",
   "./index.html",
@@ -8,7 +8,8 @@ const ASSETS = [
   "./icons/icon-512.png",
   "./icons/maskable-512.png",
   "./icons/apple-touch-icon.png",
-  "./icons/favicon-32.png"
+  "./icons/favicon-32.png",
+  "./icons/qr.png"
 ];
 
 self.addEventListener("install", function (event) {

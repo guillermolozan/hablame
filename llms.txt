@@ -6,7 +6,7 @@
 
 - Reconocimiento de voz en el navegador (Web Speech API), sin instalar nada.
 - El mensaje hablado se muestra en letra gigante que se auto-ajusta al tamaño de la pantalla.
-- Dos botones: "Hablar" (detecta preguntas automáticamente y agrega signos ¿?) y "Preguntar" (fuerza formato de pregunta).
+- Dos botones: "Afirmar" (detecta preguntas automáticamente y agrega signos ¿?) y "Preguntar" (fuerza formato de pregunta).
 - Puntuación automática por silencio (punto y salto de línea) y detención automática tras silencio.
 - Mensajes recientes, mensajes destacados, copiado al portapapeles con presión larga.
 - Temas de color, tamaño y tipografía ajustables, orientación vertical y horizontal.
