@@ -713,7 +713,7 @@
       };
 
       const FIRST_WORD_GRACE = 6; // seconds allowed before the first word is heard
-      const APP_VERSION = "1.7.1";
+      const APP_VERSION = "1.8.0";
 
       // localStorage may be unavailable (private mode, sandboxed iframe) — fall back to memory.
       const store = (function () {
@@ -1045,23 +1045,14 @@
         punctuated = false;
       }
 
-      // Message starts with a Spanish interrogative word (accented forms only,
-      // since unaccented "que/como/cuando..." are usually statements).
-      const QUESTION_START = new RegExp(
-        "^\\s*\u00bf?\\s*(?:(?:por|para|a|de|en|hasta|desde|hacia)\\s+)?" +
-        "(?:qu\u00e9|c\u00f3mo|ad\u00f3nde|d\u00f3nde|cu\u00e1ndo|qui\u00e9n(?:es)?|cu\u00e1l(?:es)?|cu\u00e1nt[oa]s?)" +
-        "(?![a-z\u00e1-\u00fa\u00fc\u00f1])",
-        "i"
-      );
-
-      // Appends a period (unless already punctuated), or wraps questions in
-      // ¿…? (always when forceQuestion, else detected), plus a line break.
+      // Appends a period (unless already punctuated), or wraps the whole
+      // message in ¿…? when forceQuestion (botón Preguntar), plus a line break.
       function punctuate(text, forceQuestion) {
         const trimmed = text.replace(/\s+$/, "");
         if (!trimmed) return text;
         const alreadyOpen = trimmed.charAt(0) === "\u00bf";
 
-        if ((forceQuestion || QUESTION_START.test(trimmed)) && !alreadyOpen) {
+        if (forceQuestion && !alreadyOpen) {
           return "\u00bf" + trimmed.replace(/[.!?\u2026]+\s*$/, "") + "?\n";
         }
         if (!alreadyOpen && /\?\s*$/.test(trimmed)) {

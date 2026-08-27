@@ -1,4 +1,4 @@
-const CACHE = "leelo-v1.7.1";
+const CACHE = "leelo-v1.8.0";
 const ASSETS = [
   "./",
   "./index.html",

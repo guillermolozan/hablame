@@ -16,7 +16,7 @@ Firefox no es compatible (no tiene Web Speech API).
 
 ## Funciones
 
-- **Afirmar**: dicta un mensaje; detecta preguntas automáticamente (empiezan con qué, cómo, dónde…) y las envuelve en `¿ … ?`.
+- **Afirmar**: dicta un enunciado; lleva punto final automático.
 - **Preguntar**: fuerza el formato de pregunta sin detección.
 - Puntuación automática por silencio (punto y salto de línea configurables) y detención automática tras silencio.
 - Ajustes: temas de color y colores personalizados, tamaño de texto auto/manual, tipografía, mayúsculas, idioma de reconocimiento (`es-PE` por defecto), mantener pantalla encendida.
