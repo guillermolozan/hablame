@@ -133,7 +133,11 @@
       cursor: pointer;
       display: grid;
       place-items: center;
+      opacity: 0.65;
+      transition: opacity 0.2s ease;
     }
+
+    .icon-btn:active { opacity: 1; }
 
     .icon-btn:active { transform: scale(0.94); }
     .icon-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
@@ -189,6 +193,7 @@
       border-radius: 18px;
       background: transparent;
       color: var(--fg);
+      opacity: 0.65;
       font-size: 21px;
       font-weight: 700;
       font-family: inherit;
@@ -197,9 +202,10 @@
       align-items: center;
       justify-content: center;
       gap: 10px;
+      transition: opacity 0.2s ease;
     }
 
-    .action:active { transform: scale(0.98); }
+    .action:active { transform: scale(0.98); opacity: 1; }
     .action:focus-visible { outline: 3px solid var(--fg); outline-offset: 3px; }
     .action[disabled] { opacity: 0.4; }
     .action[hidden] { display: none; }
@@ -713,7 +719,7 @@
       };
 
       const FIRST_WORD_GRACE = 6; // seconds allowed before the first word is heard
-      const APP_VERSION = "1.8.1";
+      const APP_VERSION = "1.8.2";
 
       // localStorage may be unavailable (private mode, sandboxed iframe) — fall back to memory.
       const store = (function () {
