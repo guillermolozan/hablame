@@ -713,7 +713,7 @@
       };
 
       const FIRST_WORD_GRACE = 6; // seconds allowed before the first word is heard
-      const APP_VERSION = "1.8.0";
+      const APP_VERSION = "1.8.1";
 
       // localStorage may be unavailable (private mode, sandboxed iframe) — fall back to memory.
       const store = (function () {
@@ -836,7 +836,7 @@
       }
 
       function renderListening() {
-        el.display.textContent = "ESCUCHANDO...";
+        el.display.textContent = askMode ? "Ya puedes preguntar..." : "Ya puedes hablar...";
         el.display.classList.remove("placeholder");
         el.display.classList.add("interim");
         fitText();
